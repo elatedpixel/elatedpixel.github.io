@@ -12,27 +12,36 @@
 
 (def click-count (r/atom 0))
 
-(defn upload-form [form-state]
-  [:div.box
-   [:div.field
-    [:label.label "First Name"]
-    [:div.control
-     [:input.input {:placeholder "Tell us your first (preferred) name!"
-                    :on-change #(swap! form-state assoc :first-name (-> % .-target .-value))
-                    :value (:first-name @form-state)
-                    :type "text"}]]]
-   [:div.field
-    [:label.label "Last Name"]
-    [:div.control
-     [:input.input {:placeholder "What is your last name?"
-                    :on-change #(swap! form-state assoc :last-name (-> % .-target .-value))
-                    :value (:last-name @form-state)
-                    :type "text"}]]]
-   [:div.field.is-grouped.is-grouped-right
-    [:p.control
-     [:a.button.is-primary "Upload"]
-     [:a.button.is-light "Cancel"]]]
-   [:pre (js/JSON.stringify (clj->js @form-state) nil 2)]])
+(defn upload-form [form-data]
+  (let [form-state (r/atom {:is-loading false})]
+    (fn []
+      [:div.box
+       [:div.field
+        [:label.label "First Name"]
+        [:div.control
+         [:input.input {:placeholder "Tell us your first (preferred) name!"
+                        :on-change   #(swap! form-data assoc :first-name (-> % .-target .-value))
+                        :value       (:first-name @form-data)
+                        :type        "text"}]]]
+       [:div.field
+        [:label.label "Last Name"]
+        [:div.control
+         [:input.input {:placeholder "What is your last name?"
+                        :on-change   #(swap! form-data assoc :last-name (-> % .-target .-value))
+                        :value       (:last-name @form-data)
+                        :type        "text"}]]]
+       [:div.field.is-grouped.is-grouped-right
+        [:p.control
+         (let [is-loading (:is-loading @form-state)]
+           [:a.button.is-link {:class (cond
+                                        is-loading "is-loading")
+                               :disabled is-loading
+                               :on-click #(do
+                                            (swap! form-state assoc :is-loading true)
+                                            (js/setTimeout (fn [] (swap! form-state assoc :is-loading false)) 2000))}
+            "Upload"])
+         [:a.button.is-light "Cancel"]]]
+       [:pre (js/JSON.stringify (clj->js @form-data) nil 2)]])))
 
 (defn hello []
   [:<>
